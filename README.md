@@ -115,7 +115,7 @@ docker build -t wayline .
 docker run --rm -p 8000:8000 -e ALLOWED_HOSTS=localhost,127.0.0.1 wayline
 ```
 
-**Hosted app:** https://wayline-1vy8.vercel.app/ · **Backend health:** https://wayline-delta.vercel.app/api/health · **Loom:** not recorded yet.
+**Hosted app:** https://wayline-1vy8.vercel.app/ · **Backend health:** https://wayline-delta.vercel.app/api/health · **Walkthrough:** [7-minute MP4](docs/wayline-walkthrough.mp4) · **Loom/share link:** pending upload.
 
 Production smoke test passed on November 2, 2026: frontend/backend CORS, live Chicago → Detroit truck routes and recommendation (two distinct routes returned), route selection, checkpoint ETA/weather popups, city autocomplete and keyboard selection, the +48-hour rain layer without changing route risk, a fresh-page reload, and a useful error for past departures. No browser console errors were observed. These checks cover the demonstrated trip; automated tests cover risk boundaries and rare hazard cases.
 
@@ -131,6 +131,8 @@ Free hosting availability and public API limits can change; free services may th
 Reference repositories reviewed for implementation ideas: [OzairKhanBro](https://github.com/OzairKhanBro/spotter-truck-routing) (keyless truck routes, arrival-time matching, risk strips), [Madesh frontend](https://github.com/Madesh-cse/spotter-truck-routing-frontend) / [backend](https://github.com/Madesh-cse/spotter-truck-routing-backend) (Leaflet layout and isolated risk functions), and [dohoudaniel](https://github.com/dohoudaniel/spotter-backend-django) (plain Django and small routing payloads). [Shruti-Apte](https://github.com/Shruti-Apte/truck-route-planner), [FelixBC](https://github.com/FelixBC/spotter-eld), and [TheACJ](https://github.com/TheACJ/spotter_trip_planner) address different ELD/HOS assignments. Implemented independently; no third-party application source was copied.
 
 ## 5–10 minute walkthrough
+
+The repository includes [the finished MP4](docs/wayline-walkthrough.mp4) and [SRT subtitles](docs/wayline-walkthrough.srt). The 7-minute-12-second, 1080p edited walkthrough combines captured views of the live app, a real slider interaction sequence, source-code excerpts, and actual test output. It is silent, with burned-in explanatory captions and chapter markers. Download the MP4 from GitHub using the file's download/raw control, then upload it to Loom or your preferred video host and share a viewable link.
 
 1. Enter locations, departure, cargo and checkpoint interval; plan a trip.
 2. Compare returned alternatives and explain recommendation order and exclusions.

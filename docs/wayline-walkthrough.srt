@@ -1,0 +1,387 @@
+1
+00:00:00,000 --> 00:00:07,121
+Welcome to this captioned walkthrough of Wayline, a weather aware truck
+route planner built with React and Django.
+
+2
+00:00:07,121 --> 00:00:15,666
+The goal is to help a driver compare road routes using the weather they are
+expected to encounter, their cargo weight, and
+
+3
+00:00:15,666 --> 00:00:16,995
+their travel time.
+
+4
+00:00:16,995 --> 00:00:20,603
+This walkthrough uses the deployed application and actual forecasts.
+
+5
+00:00:20,603 --> 00:00:27,819
+We will enter a trip, compare alternatives, inspect arrival time
+checkpoints, explore the forty eight hour corridor layer,
+
+6
+00:00:27,819 --> 00:00:29,908
+and briefly review the implementation.
+
+7
+00:00:29,908 --> 00:00:35,414
+The app does not use a language model to decide which route to recommend.
+
+8
+00:00:35,414 --> 00:00:38,642
+Its decisions come from the assignment's explicit rules.
+
+9
+00:00:38,642 --> 00:00:41,708
+The form starts with an origin and destination.
+
+10
+00:00:41,708 --> 00:00:48,650
+Place search returns labeled candidates, and a candidate must be selected
+so the backend receives coordinates rather than an
+
+11
+00:00:48,650 --> 00:00:49,912
+ambiguous city name.
+
+12
+00:00:49,912 --> 00:00:52,977
+Here the demonstration trip is Chicago to Detroit.
+
+13
+00:00:52,977 --> 00:01:00,370
+Departure is shown in the browser's local timezone and is sent to the API
+as a timestamp with a timezone.
+
+14
+00:01:00,370 --> 00:01:02,714
+Cargo weight is entered in pounds.
+
+15
+00:01:02,714 --> 00:01:05,419
+It is separate from gross vehicle weight.
+
+16
+00:01:05,419 --> 00:01:09,746
+The checkpoint buttons select ten, twenty five, or fifty mile spacing.
+
+17
+00:01:09,746 --> 00:01:12,812
+A shorter interval samples the journey more closely.
+
+18
+00:01:12,812 --> 00:01:19,123
+The origin and destination are included even when the final segment is
+shorter than the selected interval.
+
+19
+00:01:19,123 --> 00:01:23,360
+For this trip, I return the spacing to twenty five miles.
+
+20
+00:01:23,360 --> 00:01:31,191
+Finding routes calls the Django backend, which requests road geometry and
+travel times, samples checkpoints along the road,
+
+21
+00:01:31,191 --> 00:01:33,071
+and obtains hourly forecasts.
+
+22
+00:01:33,071 --> 00:01:36,621
+Valhalla supplies truck routes without requiring a key.
+
+23
+00:01:36,621 --> 00:01:40,589
+The app requests a primary route and two alternatives.
+
+24
+00:01:40,589 --> 00:01:49,256
+A provider can return fewer distinct routes, and the app displays those
+real results rather than inventing a third option.
+
+25
+00:01:49,256 --> 00:01:57,296
+Each card shows road mileage, estimated driving duration, arrival time,
+severe miles, high risk miles, and the distance
+
+26
+00:01:57,296 --> 00:01:58,758
+weighted average risk.
+
+27
+00:01:58,758 --> 00:02:03,561
+Clicking another card highlights its route and displays that route's
+checkpoints.
+
+28
+00:02:03,561 --> 00:02:09,722
+Selection is separate from the recommendation, so every returned option
+remains available for comparison.
+
+29
+00:02:09,722 --> 00:02:13,435
+A checkpoint popup connects the forecast to the journey.
+
+30
+00:02:13,435 --> 00:02:21,643
+It shows the route, cumulative mileage, estimated arrival, sustained wind
+in miles per hour, rain and snowfall in inches per
+
+31
+00:02:21,643 --> 00:02:25,063
+hour, and the final risk with its reason.
+
+32
+00:02:25,063 --> 00:02:32,978
+These are forecasts matched to the checkpoint's arrival time, rather than
+the same weather hour being reused for the entire
+
+33
+00:02:32,978 --> 00:02:33,564
+trip.
+
+34
+00:02:33,564 --> 00:02:36,105
+Checkpoints follow the actual road polyline.
+
+35
+00:02:36,105 --> 00:02:42,652
+Travel time comes from provider edge timing or maneuver timing, with
+distance based interpolation where needed.
+
+36
+00:02:42,652 --> 00:02:45,974
+The destination is included as the last checkpoint.
+
+37
+00:02:45,974 --> 00:02:50,860
+The displayed forecast hour ends the precipitation interval containing the
+arrival time.
+
+38
+00:02:50,860 --> 00:02:56,332
+These travel estimates exclude driver breaks, fuel stops, and hours of
+service scheduling.
+
+39
+00:02:56,332 --> 00:02:59,749
+The weather outlook is a different view of time.
+
+40
+00:02:59,749 --> 00:03:05,325
+It shows a two dimensional grid around the returned routes at one common
+forecast hour.
+
+41
+00:03:05,325 --> 00:03:11,530
+The controls switch between physical wind, rain, and snow values, with
+units and a color scale.
+
+42
+00:03:11,530 --> 00:03:17,106
+Moving the slider selects any hour from the displayed base through plus
+forty eight hours.
+
+43
+00:03:17,106 --> 00:03:22,772
+The grid series is fetched separately from route planning, so slider
+changes are handled locally.
+
+44
+00:03:22,772 --> 00:03:26,908
+They do not recalculate checkpoint risks or change the route
+recommendation.
+
+45
+00:03:26,908 --> 00:03:29,247
+Those remain tied to arrival times.
+
+46
+00:03:29,247 --> 00:03:33,024
+The layer can also be hidden to inspect the roads.
+
+47
+00:03:33,024 --> 00:03:36,171
+Gray cells mean weather is unavailable, not zero.
+
+48
+00:03:36,171 --> 00:03:40,758
+Cell count is capped, and longer corridors use a coarser displayed
+resolution.
+
+49
+00:03:40,758 --> 00:03:47,966
+The risk module applies the assignment's wind, rain, snow, and load
+thresholds without rounding the input values first.
+
+50
+00:03:47,966 --> 00:03:53,769
+Wind at or above fifty five miles per hour means no travel for any load.
+
+51
+00:03:53,769 --> 00:04:01,258
+Wind from forty five up to fifty five, with cargo strictly above thirty
+thousand pounds, also means no travel.
+
+52
+00:04:01,258 --> 00:04:09,121
+Wind from thirty five up to forty five, with cargo strictly above forty
+thousand pounds, raises the level to severe.
+
+53
+00:04:09,121 --> 00:04:12,303
+Exact weight boundaries do not trigger those overrides.
+
+54
+00:04:12,303 --> 00:04:17,358
+The final checkpoint risk is the highest applicable weather level or load
+override.
+
+55
+00:04:17,358 --> 00:04:22,038
+A lower wind risk never cancels a higher rain or snow risk.
+
+56
+00:04:22,038 --> 00:04:28,590
+This particular live trip has benign conditions; the hazardous boundary
+cases are exercised with labeled automated fixtures.
+
+57
+00:04:28,590 --> 00:04:32,008
+Open Meteo supplies sustained wind at ten meters.
+
+58
+00:04:32,008 --> 00:04:34,621
+Wind is interpolated between hourly timestamps.
+
+59
+00:04:34,621 --> 00:04:42,259
+Rain uses rain plus showers, converted from millimeters to inches, while
+snowfall is converted from centimeters to inches.
+
+60
+00:04:42,259 --> 00:04:49,797
+Accumulations refer to the preceding hour, so the code selects the interval
+ending at or after the arrival.
+
+61
+00:04:49,797 --> 00:04:54,018
+It never silently clamps an arrival outside the forecast window.
+
+62
+00:04:54,018 --> 00:05:01,556
+A segment takes the worse risk of its endpoints, and actual segment mileage
+includes the last partial segment.
+
+63
+00:05:01,556 --> 00:05:04,169
+Average risk is weighted by distance.
+
+64
+00:05:04,169 --> 00:05:11,506
+Eligible routes are compared first by severe miles, then high risk miles,
+average risk, and travel time.
+
+65
+00:05:11,506 --> 00:05:16,934
+Any no travel segment or unknown required weather excludes a route from
+recommendation.
+
+66
+00:05:16,934 --> 00:05:21,229
+The frontend uses React, TypeScript, Vite, and Leaflet.
+
+67
+00:05:21,229 --> 00:05:28,312
+Django exposes small JSON endpoints for place search, trip planning,
+corridor forecasts, and health.
+
+68
+00:05:28,312 --> 00:05:35,394
+Provider access, geometry, forecast matching, and pure risk functions are
+separated in the backend.
+
+69
+00:05:35,394 --> 00:05:43,754
+Requests have timeouts, weather locations are fetched in bounded batches,
+and short lived caches reduce repeat calls.
+
+70
+00:05:43,754 --> 00:05:46,308
+Stale frontend requests are canceled.
+
+71
+00:05:46,308 --> 00:05:52,462
+No database, user accounts, background worker, or runtime AI service is
+required.
+
+72
+00:05:52,462 --> 00:06:01,634
+The frontend and backend are hosted as separate Vercel projects, with the
+frontend origin explicitly allowed by the API.
+
+73
+00:06:01,634 --> 00:06:09,297
+Thirteen backend tests pass, including exact thresholds, strict load
+boundaries, weighted ranking, missing forecasts, timing,
+
+74
+00:06:09,297 --> 00:06:11,387
+and cross origin access.
+
+75
+00:06:11,387 --> 00:06:16,728
+The production build and a live deployed walkthrough were also checked.
+
+76
+00:06:16,728 --> 00:06:20,321
+The README records the approximations and remaining limitations.
+
+77
+00:06:20,321 --> 00:06:27,085
+Public routing and weather services can throttle requests, return fewer
+alternatives, or provide incomplete forecasts.
+
+78
+00:06:27,085 --> 00:06:35,434
+If truck routing is unavailable, the standard road fallback is clearly
+labeled because it does not check truck restrictions.
+
+79
+00:06:35,434 --> 00:06:42,832
+The truck profile otherwise uses provider defaults; cargo is not
+incorrectly passed as the vehicle's gross weight.
+
+80
+00:06:42,832 --> 00:06:47,693
+Weather between samples and travel time within a maneuver are estimates.
+
+81
+00:06:47,693 --> 00:06:55,725
+The app follows the assignment's risk thresholds and is a planning
+demonstration rather than a guarantee of safe road
+
+82
+00:06:55,725 --> 00:06:56,359
+conditions.
+
+83
+00:06:56,359 --> 00:07:02,700
+The repository includes setup instructions, tests, provider attribution,
+deployment configuration, and the verified live
+
+84
+00:07:02,700 --> 00:07:03,334
+URLs.
+
+85
+00:07:03,334 --> 00:07:10,520
+This edited video uses captured views of the actual app, source excerpts,
+and actual test output.
+
+86
+00:07:10,520 --> 00:07:12,422
+Thank you for watching.
