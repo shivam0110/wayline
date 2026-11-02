@@ -42,7 +42,7 @@ export default function RouteMap({ plan, selected, onSelect, corridor, hour, met
   }
   return <>
     <MapContainer className="map-canvas" center={[40.8, -87]} zoom={5} zoomControl={false} preferCanvas>
-      <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
+      <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}" opacity={.65} attribution='Tiles &copy; Esri — Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, &copy; OpenStreetMap contributors, GIS User Community' />
       <ZoomControl position="topright" />
       <FitRoutes plan={plan} version={fitVersion} />
       {overlay && corridor?.cells.map((cell, i) => <Polygon key={i} positions={cell.polygon.map(latLng)} interactive={false} pathOptions={{ stroke: false, fillColor: weatherColor(cell.values[hour]?.[metric]), fillOpacity: .4 }} />)}
