@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 
 from planner.providers import truck_route
 from planner.risk import LEVELS, classify, recommend, summarize
@@ -10,6 +12,22 @@ from planner.weather import at_time
 
 
 class PlannerTests(SimpleTestCase):
+    def test_backend_only_deployment_has_a_working_root(self):
+        with TemporaryDirectory() as folder, override_settings(BASE_DIR=Path(folder) / 'backend'):
+            response = self.client.get('/')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()['health'], '/api/health')
+            self.assertEqual(self.client.get('/unknown').status_code, 404)
+
+    @override_settings(CORS_ALLOWED_ORIGINS=['https://wayline.vercel.app'])
+    def test_separate_frontend_can_call_api(self):
+        response = self.client.options('/api/plan', HTTP_ORIGIN='https://wayline.vercel.app', HTTP_ACCESS_CONTROL_REQUEST_METHOD='POST', HTTP_ACCESS_CONTROL_REQUEST_HEADERS='content-type')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Access-Control-Allow-Origin'], 'https://wayline.vercel.app')
+        self.assertIn('POST', response['Access-Control-Allow-Methods'])
+        self.assertIn('content-type', response['Access-Control-Allow-Headers'])
+        self.assertNotIn('Access-Control-Allow-Origin', self.client.get('/api/health', HTTP_ORIGIN='https://another-site.example'))
+
     def test_weather_boundaries(self):
         cases = {
             'wind': [(24.999, 0), (25, 1), (34.999, 1), (35, 2), (45, 3), (54.999, 3), (55, 4)],

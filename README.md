@@ -21,7 +21,7 @@ make serve
 
 `make test` runs the compact backend suite and the TypeScript/production build. No database setup or migrations are needed.
 
-Optional environment variables: `SECRET_KEY`, `ALLOWED_HOSTS` (comma separated), `DEBUG` (`true` enables development mode), and `PORT` (defaults to 8000). `make` loads a root `.env`; Docker expects environment variables. `.env.example` contains names only. When configuring a host, set a random secret and its allowed hostname.
+Backend environment variables: `SECRET_KEY`, `ALLOWED_HOSTS` (comma-separated hostnames), `CORS_ALLOWED_ORIGINS` (comma-separated frontend origins including `https://`), `DEBUG` (`true` enables development mode), and `PORT` (defaults to 8000). `make` loads a root `.env`; Docker and Vercel use their environment settings. For separate frontend hosting, set `VITE_API_URL` to the backend origin, without `/api`, before building. Leave it empty for local Vite or combined hosting. Environment examples contain names only.
 
 ## What is implemented
 
@@ -77,7 +77,38 @@ React/Vite and Leaflet render the UI. Plain Django JSON endpoints keep server lo
 
 ## Deployment
 
-The Dockerfile builds the frontend and serves the API and static files through Django, WhiteNoise and Gunicorn. `render.yaml` configures a single free-plan service. Push this repository to your GitHub account, then create a Render Blueprint using it. Other Docker-capable Python hosts also work:
+Use one GitHub repository and two Vercel projects. Both project configurations are committed. The backend uses Vercel's native Django support, Python 3.13 and a 300-second function limit; no Docker build or Gunicorn command is needed on Vercel. The frontend calls the backend directly, with CORS allowing only configured frontend origins.
+
+1. Create an empty GitHub repository (do not initialize a README). From this checkout, replace `YOUR_USERNAME` and run:
+
+   ```sh
+   git remote add origin https://github.com/YOUR_USERNAME/truck-routing.git
+   git push -u origin main
+   ```
+
+2. In Vercel, **Add New → Project**, import that repository as `wayline-api`, and set **Root Directory** to `backend`. Let Vercel detect Django; leave build/install/output overrides at their defaults. Set these **Production** environment variables before deploying:
+
+   | Variable | Value |
+   |---|---|
+   | `SECRET_KEY` | A random value generated locally with `openssl rand -hex 32` |
+   | `DEBUG` | `false` |
+   | `ALLOWED_HOSTS` | `.vercel.app` (supports the assigned Vercel hostname) |
+
+   Deploy, then open the assigned URL followed by `/api/health`. It must return `{"status":"ok"}`. Copy the stable production URL, not a temporary preview URL. The backend root also returns a small API status when no frontend build is present.
+
+3. Import the same repository again as `wayline-web`, with **Root Directory** `frontend` and **Framework Preset** Vite. The committed config sets build command `npm run build`, output `dist`, and the SPA fallback. Set the **Production** environment variable `VITE_API_URL` to the backend's production origin, for example `https://your-api.vercel.app` (no `/api`). Deploy and copy the frontend's production origin.
+
+4. Return to **wayline-api → Settings → Environment Variables**. Add **Production** `CORS_ALLOWED_ORIGINS` equal to the exact frontend origin, for example `https://your-web.vercel.app` (no path). Redeploy the backend so it takes effect. If you rename a frontend domain, update this allowlist. Preview frontend domains need their own explicit entry if you want to test them; they are not automatically trusted.
+
+5. Open the frontend in a private/incognito window. Both production deployments must be accessible without a Vercel login so the frontend can reach the API and evaluators can use the app. Check **Deployment Protection** if a login screen appears. Verify a trip, select routes, open checkpoint popups, move the forecast slider to +48h, and refresh the page. In the backend project, confirm Fluid compute is enabled for the configured function duration.
+
+6. Add your live frontend URL below, record the 5–10-minute Loom, and submit GitHub + live app + Loom. If `VITE_API_URL` changes, redeploy the frontend because Vite embeds it at build time. If backend variables change, redeploy the backend. Secrets belong only on the backend; `VITE_*` values are public.
+
+No routing, weather or map API keys are used. The original TomTom/MapTiler proposal was replaced by public services. `SECRET_KEY` is a Django application secret, not an API subscription. No database or migrations are needed. In-process caches are best-effort and can disappear between serverless invocations.
+
+References: [Vercel Django deployment](https://vercel.com/docs/frameworks/full-stack/django), [Python runtime](https://vercel.com/docs/functions/runtimes/python), and [function duration](https://vercel.com/docs/functions/configuring-functions/duration). Deployment configuration is prepared; a successful cloud deployment still needs verification.
+
+For combined local/Docker hosting, the Dockerfile serves the built frontend and API through Django, WhiteNoise and Gunicorn. `render.yaml` remains an optional single-service Render configuration:
 
 ```sh
 docker build -t wayline .

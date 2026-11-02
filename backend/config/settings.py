@@ -4,9 +4,11 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 SECRET_KEY = (os.getenv("SECRET_KEY") or "local-demo-no-sessions-or-authentication")
-ALLOWED_HOSTS = (os.getenv("ALLOWED_HOSTS") or "localhost,127.0.0.1,[::1],testserver").split(",")
-INSTALLED_APPS = ["django.contrib.staticfiles", "planner"]
-MIDDLEWARE = ["django.middleware.security.SecurityMiddleware", "django.middleware.gzip.GZipMiddleware", "whitenoise.middleware.WhiteNoiseMiddleware", "django.middleware.common.CommonMiddleware"]
+ALLOWED_HOSTS = [host.strip() for host in (os.getenv("ALLOWED_HOSTS") or "localhost,127.0.0.1,[::1],testserver").split(",") if host.strip()]
+INSTALLED_APPS = ["django.contrib.staticfiles", "corsheaders", "planner"]
+MIDDLEWARE = ["django.middleware.security.SecurityMiddleware", "corsheaders.middleware.CorsMiddleware", "django.middleware.gzip.GZipMiddleware", "whitenoise.middleware.WhiteNoiseMiddleware", "django.middleware.common.CommonMiddleware"]
+CORS_ALLOWED_ORIGINS = [origin.strip().rstrip("/") for origin in os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if origin.strip()]
+CORS_URLS_REGEX = r"^/api/"
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
 STATIC_URL = "/assets/"

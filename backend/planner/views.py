@@ -140,5 +140,5 @@ def corridor_weather(data):
 def frontend(request):
     index = Path(settings.BASE_DIR).parent / "frontend/dist/index.html"
     if not index.exists():
-        return JsonResponse({"message": "Frontend not built. Run npm run build in frontend, or use the Vite dev server on port 5173."}, status=503)
+        return JsonResponse({"service": "Wayline API", "health": "/api/health"}, status=200 if request.path == "/" else 404)
     return FileResponse(index.open("rb"), content_type="text/html")
