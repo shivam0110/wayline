@@ -106,7 +106,7 @@ Use one GitHub repository and two Vercel projects. Both project configurations a
 
 No routing, weather or map API keys are used. The original TomTom/MapTiler proposal was replaced by public services. `SECRET_KEY` is a Django application secret, not an API subscription. No database or migrations are needed. In-process caches are best-effort and can disappear between serverless invocations.
 
-References: [Vercel Django deployment](https://vercel.com/docs/frameworks/full-stack/django), [Python runtime](https://vercel.com/docs/functions/runtimes/python), and [function duration](https://vercel.com/docs/functions/configuring-functions/duration). Deployment configuration is prepared; a successful cloud deployment still needs verification.
+References: [Vercel Django deployment](https://vercel.com/docs/frameworks/full-stack/django), [Python runtime](https://vercel.com/docs/functions/runtimes/python), and [function duration](https://vercel.com/docs/functions/configuring-functions/duration).
 
 For combined local/Docker hosting, the Dockerfile serves the built frontend and API through Django, WhiteNoise and Gunicorn. `render.yaml` remains an optional single-service Render configuration:
 
@@ -115,7 +115,11 @@ docker build -t wayline .
 docker run --rm -p 8000:8000 -e ALLOWED_HOSTS=localhost,127.0.0.1 wayline
 ```
 
-**Hosted URL:** not deployed yet. **Loom:** not recorded yet. These are remaining submission steps, not completed deliverables. Free hosting availability and public API limits can change; free services may sleep or throttle. This is a demo, not a production navigation service.
+**Hosted app:** https://wayline-1vy8.vercel.app/ · **Backend health:** https://wayline-delta.vercel.app/api/health · **Loom:** not recorded yet.
+
+Production smoke test passed on November 2, 2026: frontend/backend CORS, live Chicago → Detroit truck routes and recommendation (two distinct routes returned), route selection, checkpoint ETA/weather popups, city autocomplete and keyboard selection, the +48-hour rain layer without changing route risk, a fresh-page reload, and a useful error for past departures. No browser console errors were observed. These checks cover the demonstrated trip; automated tests cover risk boundaries and rare hazard cases.
+
+Free hosting availability and public API limits can change; free services may throttle. This is a demo, not a production navigation service.
 
 ## Providers and references
 
